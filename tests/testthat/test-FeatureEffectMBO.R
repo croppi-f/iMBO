@@ -266,10 +266,55 @@ source("_Explore_Exploit_Measures/infillOptCMAESSavepts-jr.R")
 # create the PredictorAf object (source the internal functions needed)
 #old: source("2_acquisition_function/2.2_Prediction_of_surrogate/Prediction_af/PredictorAf-fc.R")
 library(iml)
-source("_iml_tools/2.2_FeatureEffectMBO/PredictorAf/PredictorAf-fc.R")
+source("R/PredictorAf.R")
 
 ######################### TEST ################################################
 library(testthat)
+
+
+test_that("data corresponds to train set if interest = surrogate and to seen points if interest = acquisition", {
+  ctrl = makeMBOControl(y.name = "ratio", store.model.at = 1:3)
+  ctrl = setMBOControlTermination(ctrl, iters = 3)
+  ctrl = setMBOControlInfill(ctrl,
+                             opt = "focussearchSavepts",
+                             opt.focussearch.maxit = 20,
+                             opt.focussearch.points = 5,
+                             crit = makeMBOInfillCritEI()
+  )
+  set.seed(1)
+  res = mbo(objfun,
+            design = initial.data,
+            control = ctrl,
+            show.info = FALSE
+  )
+  opdf = as.data.frame(res$opt.path)
+  acq.fun = res$control$infill.crit$fun
+  eff.s = FeatureEffectMBO(res.mbo = res, interest = "surrogate", feature = "time")
+  
+  # iter 2
+  opdf.2 = opdf[1:10, 1:5]
+  data = eff.s$`2`$predictor$data$get.xy()
+  expect_equal(data, data.table::data.table(opdf.2))
+  
+  eff.af = FeatureEffectMBO(res.mbo = res, interest = "acquisition", feature = "time")
+  # iter 2
+  data.af = eff.af$`2`$predictor$data$get.xy()
+  seen = res$seen.points[[2]]
+  ei = acq.fun(
+    points = seen,
+    models = list(res$models[[2]]),
+    control = res$control,
+    par.set = res$opt.path$par.set,
+    designs = list(opdf[1:10, 1:5]),
+    progress = NULL,
+    iter = NULL,
+    attributes = FALSE
+  )
+  s = cbind(seen, ei)
+  
+  expect_equal(data.af, data.table::data.table(s))
+  
+})
 
 test_that("FeatureEffectMBO result has the correct length", {
   
