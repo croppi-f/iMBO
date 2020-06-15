@@ -104,8 +104,7 @@ test_that("basically works for infill.opt = ea with various control settings", {
   expect_data_frame(xplxplMBO(objfun, design = initial.data, control = ctrl, show.info = FALSE),
                     min.rows = 1, max.rows = iters,
                     ncols = 7)
-}
-)
+})
 
 
 # cmaes only allows numeric data, no integers
@@ -206,7 +205,7 @@ objfun = makeSingleObjectiveFunction(
   has.simple.signature = FALSE,
   minimize = FALSE
 )
-'samples.argon = sample(rownames(data[data$gas == "Argon", ]), 3)'
+#'samples.argon = sample(rownames(data[data$gas == "Argon", ]), 3)'
 # sample 9 points for the initial surrogate model, stratified across gases
 samples.argon = sample(rownames(data[data$gas == "Argon", ]), 3)
 samples.nitro = sample(rownames(data[data$gas == "Nitrogen", ]), 3)
