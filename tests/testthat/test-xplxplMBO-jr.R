@@ -7,8 +7,7 @@ iters = 3
 # 1. Test on numerical parameter set (material design)
 
 # read material design data
-source("_Explore_Exploit_Measures/analyze-material-design-xplxpl/read-data-material-design-jr.R")
-
+source("tests/test_data/md.R")
 
 # set hyperparameter
 model = train(makeLearner("regr.randomForest"), makeRegrTask(data = data, target = "target"))
