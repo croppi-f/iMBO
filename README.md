@@ -8,3 +8,6 @@ This repo contains tools to interpret Model Based Optimization processes
   
 * **Folder tests**
   + tests for the functions
+
+* **Shiny_App**
+  + Shiny App for interactive visualization

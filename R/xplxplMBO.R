@@ -4,35 +4,35 @@ library(DiceKriging)
 library(checkmate)
 
 #source modified functions from mlrMBO
-source("_Explore_Exploit_Measures/proposePointsByInfillOptimization-jr.R")
-source("_Explore_Exploit_Measures/makeMBOResult.OptState-jr.R")
-source("_Explore_Exploit_Measures/getSupportedInfillOptFunctions-jr.R")
-source("_Explore_Exploit_Measures/proposePointsByInfillOptimization-jr.R")
-source("_Explore_Exploit_Measures/getInfillOptFunction-jr.R")
-source("_Explore_Exploit_Measures/checkStuff-jr.R")
+source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
+source("R/utils_xplxpl/makeMBOResult.OptState-jr.R")
+source("R/utils_xplxpl/getSupportedInfillOptFunctions-jr.R")
+source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
+source("R/utils_xplxpl/getInfillOptFunction-jr.R")
+source("R/utils_xplxpl/checkStuff-jr.R")
 
 # multi point proposal stuff
-source("_Explore_Exploit_Measures/proposePointsConstantLiarXplxpl-jr.R")
-source("_Explore_Exploit_Measures/proposePoints-jr.R")
-source("_Explore_Exploit_Measures/getSupportedMultipointInfillOptFunctions-jr.R")
+source("R/utils_xplxpl/proposePointsConstantLiarXplxpl-jr.R")
+source("R/utils_xplxpl/proposePoints-jr.R")
+source("R/utils_xplxpl/getSupportedMultipointInfillOptFunctions-jr.R")
 
 # source new infill optimization functions "...Savepts"
-source("_Explore_Exploit_Measures/infillOptFocusSavepts-jr.R")
-source("_Explore_Exploit_Measures/infillOptEASavepts-jr.R")
-source("_Explore_Exploit_Measures/infillOptCMAESSavepts-jr.R")
+source("R/utils_xplxpl/infillOptFocusSavepts-jr.R")
+source("R/utils_xplxpl/infillOptEASavepts-jr.R")
+source("R/utils_xplxpl/infillOptCMAESSavepts-jr.R")
 
 # source function that computes explore exploit measures and returns them as data frame
-source("_Explore_Exploit_Measures/computeXplxpl-jr.R")
+source("R/utils_xplxpl/computeXplxpl-jr.R")
 
 # source functions that calculate se based explore exploit measures
-source("_Explore_Exploit_Measures/xplxplSESingleLocal-jr.R")
-source("_Explore_Exploit_Measures/xplxplSESingleGlobal-jr.R")
-source("_Explore_Exploit_Measures/xplxplSEMultiLocal-jr.R")
-source("_Explore_Exploit_Measures/xplxplSEMultiGlobal-jr.R")
+source("R/utils_xplxpl/xplxplSESingleLocal-jr.R")
+source("R/utils_xplxpl/xplxplSESingleGlobal-jr.R")
+source("R/utils_xplxpl/xplxplSEMultiLocal-jr.R")
+source("R/utils_xplxpl/xplxplSEMultiGlobal-jr.R")
 
 # source functions that calculate distance based explore exploit statistics
-source("_Explore_Exploit_Measures/xplxplDistNum-jr.R")
-source("_Explore_Exploit_Measures/xplxplDistCat-jr.R")
+source("R/utils_xplxpl/xplxplDistNum-jr.R")
+source("R/utils_xplxpl/xplxplDistCat-jr.R")
 
 
 # ... or simply (final version): 

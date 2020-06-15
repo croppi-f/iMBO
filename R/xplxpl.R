@@ -3,7 +3,7 @@ library(mlrMBO)
 library(DiceKriging)
 library(checkmate)
 
-source("_Explore_Exploit_Measures/xplxplMBO-jr.R")
+source("R/xplxplMBO-jr.R")
 
 
 #' Explore_Exploit Function

@@ -251,21 +251,17 @@ ctrl = makeMBOControl(y.name = "ratio")
 ctrl = setMBOControlTermination(ctrl, iters = 3)
 
 #source modified function from mlrMBO
-source("_Explore_Exploit_Measures/proposePointsByInfillOptimization-jr.R")
-source("_Explore_Exploit_Measures/makeMBOResult.OptState-jr.R")
-source("_Explore_Exploit_Measures/getSupportedInfillOptFunctions-jr.R")
-source("_Explore_Exploit_Measures/proposePointsByInfillOptimization-jr.R")
-source("_Explore_Exploit_Measures/getInfillOptFunction-jr.R")
-source("_Explore_Exploit_Measures/checkStuff-jr.R")
+source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
+source("R/utils_xplxpl/makeMBOResult.OptState-jr.R")
+source("R/utils_xplxpl/getSupportedInfillOptFunctions-jr.R")
+source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
+source("R/utils_xplxpl/getInfillOptFunction-jr.R")
+source("R/utils_xplxpl/checkStuff-jr.R")
 
 # source new infill optimization functions "...Savepts"
-source("_Explore_Exploit_Measures/infillOptFocusSavepts-jr.R")
-source("_Explore_Exploit_Measures/infillOptEASavepts-jr.R")
-source("_Explore_Exploit_Measures/infillOptCMAESSavepts-jr.R")
-
-# create the PredictorAf object (source the internal functions needed)
-library(iml)
-source("R/PredictorAf.R")
+source("R/utils_xplxpl/infillOptFocusSavepts-jr.R")
+source("R/utils_xplxpl/infillOptEASavepts-jr.R")
+source("R/utils_xplxpl/infillOptCMAESSavepts-jr.R")
 
 ######################### TEST ################################################
 library(testthat)
@@ -755,14 +751,5 @@ test_that("FeatureEffectMBO works both with chr and num features", {
   
   expect_equal(res.chr, res.num)
   
-})
-
-# this test is actually for the PredictorAf, so move once is done and adapt design
-test_that("PredictorAf has the correct public list elements", {
-  p.ei = PredictorAf$new(model = res.mbo.ei$models[[1]],
-                         res.mbo = res.mbo.ei,
-                         iter = 1,
-                         design = opdf.ei[1:9,1:5]
-  )
 })
 

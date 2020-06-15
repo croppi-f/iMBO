@@ -1165,12 +1165,21 @@ objfun = makeSingleObjectiveFunction(
 set.seed(1)
 initial.data = generateDesign(10, attributes(objfun)$par.set)
 
+#source modified function from mlrMBO
+source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
+source("R/utils_xplxpl/makeMBOResult.OptState-jr.R")
+source("R/utils_xplxpl/getSupportedInfillOptFunctions-jr.R")
+source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
+source("R/utils_xplxpl/getInfillOptFunction-jr.R")
+source("R/utils_xplxpl/checkStuff-jr.R")
+
+# source new infill optimization functions "...Savepts"
+source("R/utils_xplxpl/infillOptFocusSavepts-jr.R")
+source("R/utils_xplxpl/infillOptEASavepts-jr.R")
+source("R/utils_xplxpl/infillOptCMAESSavepts-jr.R")
 
 ######################### TEST #################################################
 library(testthat)
-# source the data and MBO configs
-source("fc_notizen/materials-design-playground-fc.R")
-
 
 test_that("Equivalence for Confidence Bound", {
   ctrl = makeMBOControl(y.name = "target", store.model.at = 1:3)
@@ -1194,14 +1203,14 @@ test_that("Equivalence for Confidence Bound", {
   
   #create the PredictorAfObject in iter 1
   p1 = PredictorAf$new(model = res$models[[1]],
-                         data = res.mbo$seen.points[[1]], 
+                         data = res$seen.points[[1]], 
                          res.mbo = res,
                          iter = 1,
                          design = opdf[1:10, c(pars, y.name)] 
   )
   #create the PredictorAfObject in iter 2
   p2 = PredictorAf$new(model = res$models[[2]],
-                       data = res.mbo$seen.points[[2]], 
+                       data = res$seen.points[[2]], 
                        res.mbo = res,
                        iter = 2,
                        design = opdf[1:11, c(pars, y.name)] 
@@ -1240,14 +1249,14 @@ test_that("Equivalence for Expected Improvement", {
   
   #create the PredictorAfObject in iter 1
   p1 = PredictorAf$new(model = res$models[[1]],
-                       data = res.mbo$seen.points[[1]], 
+                       data = res$seen.points[[1]], 
                        res.mbo = res,
                        iter = 1,
                        design = opdf[1:10, c(pars, y.name)] 
   )
   #create the PredictorAfObject in iter 2
   p2 = PredictorAf$new(model = res$models[[2]],
-                       data = res.mbo$seen.points[[2]], 
+                       data = res$seen.points[[2]], 
                        res.mbo = res,
                        iter = 2,
                        design = opdf[1:11, c(pars, y.name)] 
@@ -1287,14 +1296,14 @@ test_that("Equivalence for Mean Response", {
   
   #create the PredictorAfObject in iter 1
   p1 = PredictorAf$new(model = res$models[[1]],
-                       data = res.mbo$seen.points[[1]], 
+                       data = res$seen.points[[1]], 
                        res.mbo = res,
                        iter = 1,
                        design = opdf[1:10, c(pars, y.name)] 
   )
   #create the PredictorAfObject in iter 2
   p2 = PredictorAf$new(model = res$models[[2]],
-                       data = res.mbo$seen.points[[2]], 
+                       data = res$seen.points[[2]], 
                        res.mbo = res,
                        iter = 2,
                        design = opdf[1:11, c(pars, y.name)] 
@@ -1333,14 +1342,14 @@ test_that("Equivalence for Standard Error", {
   
   #create the PredictorAfObject in iter 1
   p1 = PredictorAf$new(model = res$models[[1]],
-                       data = res.mbo$seen.points[[1]], 
+                       data = res$seen.points[[1]], 
                        res.mbo = res,
                        iter = 1,
                        design = opdf[1:10, c(pars, y.name)] 
   )
   #create the PredictorAfObject in iter 2
   p2 = PredictorAf$new(model = res$models[[2]],
-                       data = res.mbo$seen.points[[2]], 
+                       data = res$seen.points[[2]], 
                        res.mbo = res,
                        iter = 2,
                        design = opdf[1:11, c(pars, y.name)] 
@@ -1379,14 +1388,14 @@ test_that("Equivalence for Augmented EI", {
   
   #create the PredictorAfObject in iter 1
   p1 = PredictorAf$new(model = res$models[[1]],
-                       data = res.mbo$seen.points[[1]], 
+                       data = res$seen.points[[1]], 
                        res.mbo = res,
                        iter = 1,
                        design = opdf[1:10, c(pars, y.name)] 
   )
   #create the PredictorAfObject in iter 2
   p2 = PredictorAf$new(model = res$models[[2]],
-                       data = res.mbo$seen.points[[2]], 
+                       data = res$seen.points[[2]], 
                        res.mbo = res,
                        iter = 2,
                        design = opdf[1:11, c(pars, y.name)] 
@@ -1425,14 +1434,14 @@ test_that("Equivalence for Expected Quantile Improvement", {
   
   #create the PredictorAfObject in iter 1
   p1 = PredictorAf$new(model = res$models[[1]],
-                       data = res.mbo$seen.points[[1]], 
+                       data = res$seen.points[[1]], 
                        res.mbo = res,
                        iter = 1,
                        design = opdf[1:10, c(pars, y.name)] 
   )
   #create the PredictorAfObject in iter 2
   p2 = PredictorAf$new(model = res$models[[2]],
-                       data = res.mbo$seen.points[[2]], 
+                       data = res$seen.points[[2]], 
                        res.mbo = res,
                        iter = 2,
                        design = opdf[1:11, c(pars, y.name)] 
@@ -1581,7 +1590,7 @@ test_that("Data corresponds to seen points and designs to training set within a 
     p2$data$X, data.table::data.table(res$seen.points[[2]])
   )
   expect_equal(
-    p2$design[[2]], opdf[1:11,c(pars, y.name)]
+    p2$design[[1]], opdf[1:11,c(pars, y.name)]
   )
 })
 
@@ -1616,20 +1625,22 @@ test_that("PredictorAf works also if y not specified in data or as an argument",
                        iter = 1,
                        design = opdf[1:10, c(pars, y.name)] 
   )
-
-  # with y specified as caharacter
-  p1.chr = PredictorAf$new(model = res$models[[1]],
-                       data = res$seen.points[[1]], 
-                       res.mbo = res,
-                       iter = 1,
-                       y = "ei",
-                       design = opdf[1:10, c(pars, y.name)] 
+  
+  # with y specified as caharacter --> throws an error because y is chr but not in seen.points
+  expect_error(
+    p1.chr = PredictorAf$new(model = res$models[[1]],
+                             data = res$seen.points[[1]], 
+                             res.mbo = res,
+                             iter = 1,
+                             y = "ei",
+                             design = opdf[1:10, c(pars, y.name)] 
+    )
   )
-  # with y specified only in data
-  ic1 = acq.fun(
+  # with y comtained in the data
+  ei = acq.fun(
     points = res$seen.points[[1]],
     models = list(res$models[[1]]),
-    control = res$controlcontrol.mbo,
+    control = res$control,
     par.set = res$opt.path$par.set,
     designs = list(opdf[1:10, c(pars, y.name)]),
     iter = 1,
@@ -1637,23 +1648,32 @@ test_that("PredictorAf works also if y not specified in data or as an argument",
     attributes = FALSE
   )
   p1.data = PredictorAf$new(model = res$models[[1]],
-                          data = cbind(res$seen.points[[1]], ei = ic1),
-                          res.mbo = res,
-                          iter = 1, 
-                          design = opdf[1:10, c(pars, y.name)])
+                            data = cbind(res$seen.points[[1]], ei = ei),
+                            res.mbo = res,
+                            iter = 1, 
+                            design = opdf[1:10, c(pars, y.name)])
+  
+  # with y as vector
+  p1.vec = PredictorAf$new(model = res$models[[1]],
+                           data = res$seen.points[[1]],
+                           res.mbo = res,
+                           iter = 1, 
+                           y = ei,
+                           design = opdf[1:10, c(pars, y.name)])
   
   expect_equivalent(
-    p1$predict(pp.true.ei[1, ]),
+    p1$predict(pp.true[1, ]),
     opdf[11, infill]
   )
   expect_equivalent(
-    p1.chr$predict(pp.true.ei[1, ]),
+    p1.data$predict(pp.true[1, ]),
     opdf[11, infill]
   )
   expect_equivalent(
-    p1.data$predict(pp.true.ei[1, ]),
+    p1.vec$predict(pp.true[1, ]),
     opdf[11, infill]
   )
+  
 })
 
 test_that("extracts data (seen.points) correctly from the mbo object", {

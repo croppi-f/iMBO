@@ -109,7 +109,7 @@ inflInst <- function(res.mbo, iter, influence =  "linear", interest = "surrogate
       # we set a seed so that each mbo process starts from the same "position" & different results
       # occurs because of different designs
       set.seed(seed)
-      mbo.hypo = mbo(fun = fun.mbo, 
+      mbo.hypo = mlrMBO::mbo(fun = fun.mbo, 
                      design = new.design[not.removed, , drop = FALSE],
                      learner = learner.mbo,
                      control = control.mbo, 
