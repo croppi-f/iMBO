@@ -179,7 +179,7 @@ test_that("basically works for infill.opt = cmaes with various control settings"
 
 # 2. Test on mixed parameter space (including categorical pars)
 
-source("_Explore_Exploit_Measures/analyze-kapton-xplxpl/read-data-kapton-jr.R")
+source("tests/test_data/kapton.R")
 
 
 model = train(makeLearner("regr.randomForest"), makeRegrTask(data = data, target = "ratio"))
