@@ -10,6 +10,3 @@ This repo contains tools to interpret Model Based Optimization processes
 * **Folder tests**
   + testthat for the tests
   + test_data are the data sets used for the tests (Materials_Design and Kapton)
-
-* **Shiny_App**
-  + Shiny App for interactive visualization
