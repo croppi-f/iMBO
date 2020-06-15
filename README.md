@@ -1,4 +1,4 @@
-# imlMBO
+# iMBO
 This repo contains tools to interpret Model Based Optimization processes
 
 * **Folder R**
