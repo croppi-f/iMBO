@@ -1,30 +1,20 @@
-# TO DO: correct documentation with import, export template
-# this files are needed in order to create the object (not every function is used, but anyway)
-# TO DO: all in one file 
-# source("2_acquisition_function/2.2_Prediction_of_surrogate/Prediction_af/files_to_source-iml-molnar/utils-iml-molnar.R")
-# source("2_acquisition_function/2.2_Prediction_of_surrogate/Prediction_af/files_to_source-iml-molnar/inferTask-iml-molnar.R")
-# source("2_acquisition_function/2.2_Prediction_of_surrogate/Prediction_af/files_to_source-iml-molnar/find_y-iml-molnar.R")
-# source("2_acquisition_function/2.2_Prediction_of_surrogate/Prediction_af/files_to_source-iml-molnar/Data-iml-molnar.R")
+source("R/utils_fembo_inflinst.R")
 
-source("_iml_tools/2.2_FeatureEffectMBO/PredictorAf/files_to_source-iml-molnar/utils-iml-molnar.R")
-source("_iml_tools/2.2_FeatureEffectMBO/PredictorAf/files_to_source-iml-molnar/inferTask-iml-molnar.R")
-#source("_iml_tools/2.2_FeatureEffectMBO/PredictorAf/files_to_source-iml-molnar/find_y-iml-molnar.R")
-source("_iml_tools/2.2_FeatureEffectMBO/PredictorAf/files_to_source-iml-molnar/Data-iml-molnar.R")
 
-#' @title Predictor object that predicts the value of the AF in the MBO process.
+#' @title Predictor object that contains the Acquisition Function of a MBO process
 #'
 #' @description
-#' `PredictorAf` is a extension of `Predictor`(inherits its behavior), which holds 
-#' a `mlr` model and can be seen as a transformation of it. Therefore, it is a container for the acquisition function and the data.
-#' of it. It can be used to understand the behavior of the Af within a MBO process, anlysed with 
-#' `mlrMBO` using the tools provided in the `iml` package. So far, PreditorAf works for the
-#' seven built in SingleObjective AF of mlrMBO.
+#' `PredictorAf` is a extension / modification of `Predictor`(inherits its behavior). It holds 
+#' a `mlr` model (the surrogate model), the AF of a BO process and the candidate points to analyse.
+#' It can be used to understand the behavior of the Af within a MBO process, anlysed with 
+#' `mlrMBO` using the tools provided in the `iml` package. So far, PreditorAf works for the seven built in SingleObjective AF of mlrMBO.
 #' PredictorAf is built on iml version ‘0.10.0’.Due to inherit, if latest versions of iml are released PredictorAf might generate errors. 
 #'
 #' @details
 #' -`PredictorAf` has been created for regression tasks. For classfication taks,
 #' we do not know how & if it works at all.
-#' -Please use it only in combination with the `mlrMBO` package
+#' - `PredictorAf` class is created in a more general way, in order to be eventually compatible with other iml tools.
+#' -Please use it only in combination with the `mlrMBO` package.
 #' @name PredictorAf
 #' @export
 PredictorAf = R6::R6Class("PredictorAf",
@@ -33,25 +23,20 @@ PredictorAf = R6::R6Class("PredictorAf",
     #' @description Create a PredictorAf object
     #' @param model\cr
     #' A machine learning model from `mlr` package, used as surrogate model in the 
-    #' MBO process, and needed in order to measure the Infill criteria. 
+    #' MBO process, and needed in order to measure the AF. 
     #' @param data [data.frame]\cr
-    #' The data for which we want to measure the Infill value, namely the seen points
+    #' The data for which we want to measure the Af, namely the candidate points
     #' within an iteration of the MBO process. 
     #' @param y `character(1)` | [numeric] | [factor]\cr 
-    #' The target vector or (preferably) the name of the target column in the `data` argument.
-    #' PredictorAf tries to infer the target automatically from the model. PredictorAf objects
-    #' can also be created if y is NULL.
+    #' The target vector or (preferably) the name of the target column (the id of the infill criterion) in the `data` argument.
+    #' PredictorAf tries to infer the target automatically if not given. 
     #' @param batch.size `numeric(1)`\cr
     #' The maximum number of rows to be input the model for prediction at once.
-    #' Currently only respected for [FeatureImp], [Partial] and [Interaction].
     #' @param res.mbo [MBOSingleObjResult]\cr
-    #' The results of the MBO process.
+    #' The result object of the MBO process.
     #' @param design [data.frame]\cr
-    #' The design or training set used to fit the surrogate model. Note, that such observation
-    #' have Infill value of 0. The argument must include also a column with the target value.
+    #' The design or training set used to fit the surrogate model. The argument must include also a column with the target value.
     #' Note, that this argument corresponds to the data argument of the Predictor Obejct in `iml`.
-    #' Allowed column classes are: [numeric], [factor], [integer], [ordered] and [character]. For some models the data can be extracted automatically.
-    #' `PredictorAf$new()` throws an error when it can't extract the design automatically.
     #' @param iter `numeric(1)`\cr
     #' The iteration of interest within the MBO process
     initialize = function(
@@ -65,60 +50,59 @@ PredictorAf = R6::R6Class("PredictorAf",
       opdf =  as.data.frame(res.mbo$opt.path)
       itmax = opdf[nrow(opdf), "dob"]
       checkmate::assertNumber(iter, lower = 1, upper = itmax)
+      # extract useful informations
+      par.set.mbo = res.mbo$opt.path$par.set
+      pars.mbo = getParam(par.set.mbo)
+      y.name.mbo = res.mbo$control$y.name
+      infill.mbo = res.mbo$control$infill.crit$id
+      initial.design = res.mbo$final.opt.state$opt.problem$design
+      acq.fun = res.mbo$control$infill.crit$fun
       
-      # this need to be fixed because the data argument in PredictorAf is different then 
-      # in the normal Predictor obeject -- if NULL it extracts the data from model, which 
-      # are theoretically our designs 
+      # the desigen is used to compute the AF 
       if (is.null(design)) {
-        tryCatch(
-          {
-            design <- prediction::find_data(model)
-          },
-          error = function(e) stop("Can't extract design from model, please provide via design=")
-        )
+        stop("Please provide the design set")
       } else {
-        # assertions works only for SingleObejective & SinglePoint Proposals
+        # assertions works only for Single-Objective & Single-Point Proposals
         checkmate::assertDataFrame(design,
-          any.missing = FALSE, all.missing = FALSE,
-          ncols = length(names(res.mbo$x)) + 1,
-          nrows = nrow(res.mbo$final.opt.state$opt.problem$design) + iter - 1
+          any.missing = FALSE, 
+          all.missing = FALSE,
+          ncols = length(pars.mbo) + 1,
+          nrows = nrow(initial.design) + iter - 1
         )
-        checkmate::assertNames(names(design), identical.to = c(names(res.mbo$x), res.mbo$control$y.name))
+        checkmate::assertNames(names(design), identical.to = c(pars.mbo, y.name.mbo))
       }
-      #it's ok if y if found in model since the name is the same as in the data
+      # y in this case is the id of the infill criterion and not the id of the target variable
       if (is.null(y)) {
-        y = res.mbo$control$infill.crit$id
-        # y not always needed, so ignore when not in data
+        y = infill.mbo
+        # y not always needed, so ignore when not in data (e.g. in the case of FEATURE EFFECT NOT NEEDED)
         if (is.character(y) && !(y %in% names(data))) {
           y = NULL
         }
       }
+      # data used are the candidate points
       if (is.null(data)) {
         # notice that it extracts the data, but the value for the Af for those points is missing
         if (!is.null(res.mbo$seen.points)) data = res.mbo$seen.points[[iter]]
-        else stop("Can't extract seen points. Provide them via data= or make sure to run the MBO with Savepts opt. methods")
+        else stop("Can't extract the candidate points. Provide them via data= or make sure to run the MBO with Savepts opt. methods")
       }
+      checkmate::assertDataFrame(data, any.missing = FALSE, all.missing = FALSE)
+      
+      # initialize public fields
       self$data = Data$new(data, y = y)
-      #self$class = class
       self$model = list(model)
       self$task = inferTaskFromModel(model)
       self$batch.size = batch.size
-      # begin edited:
       self$res.mbo = res.mbo
-      self$par.set = res.mbo$opt.path$par.set
+      self$par.set = par.set.mbo
       self$control = res.mbo$control
       self$design = list(design)
-      # add error if y is not included in design does not include y
       self$iter = iter
       self$progress = getProgressAdaCB(res.mbo, iter)
-      # the prdiction function is extracted from res.mbo, do not need an argument
-      self$prediction.function = res.mbo$control$infill.crit$fun
-      # end edited
+      # the prediction function is extracted from res.mbo, do not need an argument for that
+      self$prediction.function = acq.fun
     },
-    #' @description Predict the value of the Af for newdata. Although the function
-    #' works for design points, it theoretically makes no sense to predict the Af
-    #' for such points, as their Af value is per definition 0. Resulting Af values
-    #' will be very close to 0.
+    # taken form iml::Predictor and adjusted
+    #' @description Predict the value of the AF for newdata, e.g. other candidate points.
     #' @template newdata
     predict = function(newdata) {
       checkmate::assert_data_frame(newdata)
@@ -129,7 +113,7 @@ PredictorAf = R6::R6Class("PredictorAf",
         self$data$feature.names,
         colnames(newdata)
       ), drop = FALSE]
-      # begin edited:
+      
       prediction = self$prediction.function(
         points = newdata,
         models = self$model,
@@ -141,7 +125,7 @@ PredictorAf = R6::R6Class("PredictorAf",
         attributes = FALSE
       )
       prediction = data.frame(prediction)
-      # end edited:
+      
       if (!private$predictionChecked) {
         checkPrediction(prediction, newdata)
         private$predictionChecked = TRUE
@@ -184,23 +168,20 @@ PredictorAf = R6::R6Class("PredictorAf",
    
     #' @field prediction.function
     #' The acquisition function extracted from the MBO process. So far, the seven
-    #' built in AF for SinglObejctive are implemented. A function which expects the 
-    #' following parameters in exactly this order and return a numeric vector of 
-    #' criteria values at the points: points, models, control, par.set, design, iter, 
-    #' progress, attributes
+    #' built in AF for SinglObejctive are implemented.
     prediction.function = NULL,
    
     #' @field par.set [ParamSet]\cr
-    #' the parameter set of the MBO process, describing different aspects of the
+    #' The parameter set of the MBO process, describing different aspects of the
     #' objective function parameters
     par.set = NULL,
    
     #' @field control [MBOControl]\cr
-    #' the control object of the MBO process
+    #' The control object of the MBO process
     control = NULL,
    
     #' @field design [data.frame]\cr
-    #' the design used in the the specific iteration of the MBO process
+    #' The design set  used to compute the AF. 
     design = NULL,
    
     #' @field  iter `integer(1)`\cr
@@ -211,8 +192,7 @@ PredictorAf = R6::R6Class("PredictorAf",
    
     #' @field progress `numeric(1)`\cr
     #' A value between 0 and 1 indicating the progress of the optimization. Only needed in case of AdaCB,
-    #' or other custom Adaptive Infill Criteria. The progress is calculated with intenal function 
-    #' getProgressAdaCB.
+    #' or other custom Adaptive Infill Criteria.
     progress = NULL
   ),
   private = list(

@@ -1,4 +1,3 @@
-# -test that it works also for any possible objfun (in Larsko code objfun also contains model and fun)
 ################# Data and Configurations for the tests ##############################
 library(mlrMBO)
 
@@ -1170,7 +1169,7 @@ initial.data = generateDesign(50, attributes(objfun)$par.set)
 ######################### TEST ################################################
 library(testthat)
 
-test_that("inflInst result data frames have the correct nrow, ncol, colnames, rownames", {
+test_that("inflInst results data frames have the correct nrow, ncol, colnames, rownames", {
   ctrl = makeMBOControl(y.name = "target", store.model.at = 1:6)
   ctrl = setMBOControlTermination(ctrl, iters = 5)
   ctrl = setMBOControlInfill(ctrl,
@@ -1186,12 +1185,15 @@ test_that("inflInst result data frames have the correct nrow, ncol, colnames, ro
              control = ctrl,
              show.info = FALSE
   )
+  pars = names(res$x)
+  components = res$control$infill.crit$components
+  infill = res$control$infill.crit$id
   
-  ii = inflInst(res.mbo = res, iter = 4, influence = "normal", interest = "surrogate", 
+  ii = inflInst(res.mbo = res, iter = 4, influence = "linear", interest = "surrogate", 
                 parallel = TRUE, seed = 1, maxdepth = 2, plot = FALSE)
   
   choice = ii$choice.of.af
-  cnchoice = c(names(res$x), res$control$y.name, res$control$infill.crit$id, "dist.pp.true")
+  cnchoice = c(pars, infill, components, "dist.pp.true")
   rnchoice = c(as.character(1:(nrow(initial.data) + 4 - 1)), "true")
   
   expect_data_frame(choice,
@@ -1205,7 +1207,7 @@ test_that("inflInst result data frames have the correct nrow, ncol, colnames, ro
   expect_names(colnames(choice), type = "unique", identical.to = cnchoice)
   
   infl = ii$influence.analysis$data.frame
-  cninfl = c("infl", names(res$x), "dist.pp.true")
+  cninfl = c("infl", pars, "dist.pp.true")
   rninfl = as.character(1:(nrow(initial.data) + 4 - 1))
   
   expect_data_frame(infl,
@@ -1240,7 +1242,7 @@ test_that("df in influence analysis (params col) equal to design df (in iter i) 
   opdf = as.data.frame(res$opt.path)
   opdf = opdf[which(opdf$dob < 4), pars]
   
-  ii = inflInst(res.mbo = res, iter = 4, influence = "normal", interest = "surrogate", 
+  ii = inflInst(res.mbo = res, iter = 4, influence = "linear", interest = "surrogate", 
                 parallel = TRUE, seed = 1, maxdepth = 2, plot = FALSE)
   infl = ii$influence.analysis$data.frame
 
@@ -1269,7 +1271,7 @@ test_that("inflInst error if interest = surrogate, infill = se & model in iter n
   
 })
 
-test_that("pp in choice.of.af has name = true, correct params & dist = 0", {
+test_that("pp in choice.of.af has name = true, correct columns & dist = 0", {
   ctrl = makeMBOControl(y.name = "target", store.model.at = 1:2)
   ctrl = setMBOControlTermination(ctrl, iters = 2)
   ctrl = setMBOControlInfill(ctrl,
@@ -1287,13 +1289,13 @@ test_that("pp in choice.of.af has name = true, correct params & dist = 0", {
   )
   opdf = as.data.frame(res$opt.path)
   pars = names(res$x)
-  y.name = res$control$y.name
+  components = res$control$infill.crit$components
   infill = res$control$infill.crit$id
-  pp = opdf[which(opdf$dob == 1), c(pars, y.name, infill)]
+  pp = opdf[which(opdf$dob == 1), c(pars, infill, components)]
   pp$dist.pp.true = 0
   rownames(pp) = "true"
   
-  ii = inflInst(res.mbo = res, iter = 1, influence = "normal", interest = "acquisition", 
+  ii = inflInst(res.mbo = res, iter = 1, influence = "linear", interest = "acquisition", 
                 parallel = TRUE, seed = 1, plot = FALSE)
   
   choice = ii$choice.of.af
@@ -1301,6 +1303,39 @@ test_that("pp in choice.of.af has name = true, correct params & dist = 0", {
   
   expect_equal(pp, true.choice)
   
+})
+
+test_that("inflInst gives same result for parallel = TRUE & parallel = FALSE", {
+  ctrl = makeMBOControl(y.name = "target", store.model.at = 1:6)
+  ctrl = setMBOControlTermination(ctrl, iters = 5)
+  ctrl = setMBOControlInfill(ctrl,
+                             opt = "focussearch",
+                             opt.focussearch.maxit = 20,
+                             opt.focussearch.points = 50,
+                             crit = makeMBOInfillCritEI()
+  )
+  
+  set.seed(1)
+  res = mbo(objfun,
+            design = initial.data,
+            control = ctrl,
+            show.info = FALSE
+  )
+  
+  ii = inflInst(res.mbo = res, iter = 4, influence = "linear", interest = "surrogate", 
+                parallel = FALSE, seed = 1, plot = FALSE)
+  
+  choice = ii$choice.of.af
+  infl = ii$influence.analysis$data.frame
+  
+  ii.p = inflInst(res.mbo = res, iter = 4, influence = "linear", interest = "surrogate", 
+                parallel = TRUE, seed = 1, plot = FALSE)
+  
+  choice.p = ii.p$choice.of.af
+  infl.p = ii.p$influence.analysis$data.frame
+  
+  expect_equal(choice, choice.p)
+  expect_equal(infl, infl.p)
 })
 
 test_that("getParam extracts Params correctly", {
@@ -1339,35 +1374,3 @@ test_that("getParam extracts Params correctly", {
   
 })
 
-test_that("inflInst gives same result for parallel = TRUE & parallel = FALSE", {
-  ctrl = makeMBOControl(y.name = "target", store.model.at = 1:6)
-  ctrl = setMBOControlTermination(ctrl, iters = 5)
-  ctrl = setMBOControlInfill(ctrl,
-                             opt = "focussearch",
-                             opt.focussearch.maxit = 20,
-                             opt.focussearch.points = 50,
-                             crit = makeMBOInfillCritEI()
-  )
-  
-  set.seed(1)
-  res = mbo(objfun,
-            design = initial.data,
-            control = ctrl,
-            show.info = FALSE
-  )
-  
-  ii = inflInst(res.mbo = res, iter = 4, influence = "normal", interest = "surrogate", 
-                parallel = FALSE, seed = 1, plot = FALSE)
-  
-  choice = ii$choice.of.af
-  infl = ii$influence.analysis$data.frame
-  
-  ii.p = inflInst(res.mbo = res, iter = 4, influence = "normal", interest = "surrogate", 
-                parallel = TRUE, seed = 1, plot = FALSE)
-  
-  choice.p = ii.p$choice.of.af
-  infl.p = ii.p$influence.analysis$data.frame
-  
-  expect_equal(choice, choice.p)
-  expect_equal(infl, infl.p)
-})

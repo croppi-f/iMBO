@@ -1,5 +1,9 @@
-#utils
-# measure the Progress for AdaCB infill crit
+###################### FeatureEffectMBO and inflInst #################################################
+# this are subfunctions needed for 
+# measure the Progress for AdaCB infill crit FeatureEffectMBO and inflInst. Some of them are taken from the 
+# GitHub Repo of the iml package.
+
+# used to compute the progress when AdaCB infill criterion is used
 getProgressAdaCB = function(res.mbo, iter) {
   if (res.mbo$control$infill.crit$id == "adacb") {
     
@@ -30,7 +34,7 @@ getParam = function(par.set) {
   p
 }
 
-# calculates the FeatureEffect for surrogate within FeatureEffectMBO
+# calculates the FeatureEffect for the surrogate model within FeatureEffectMBO
 getFeatureEffectMBO = function(model.p, data.p, y.p, class.p, predict.fun.p, type.p, batch.size.p, 
                                feature.fe, method.fe, grid.size.fe, center.at.fe
 ) {
@@ -46,7 +50,7 @@ getFeatureEffectMBO = function(model.p, data.p, y.p, class.p, predict.fun.p, typ
   )
 }
 
-# calculates the FeatureEffect for acquisition within FeatureEffectMBO
+# calculates the FeatureEffect for the acquisition function within FeatureEffectMBO
 getFeatureEffectAfMBO = function(model.p, data.p, y.p, batch.size.p, res.mbo.p, design.p, iter.p,
                                  feature.fe, method.fe, grid.size.fe, center.at.fe
 ) {
@@ -145,7 +149,7 @@ Data <- R6::R6Class("Data",
                     )
 )
 
-# iml
+# iml, used for Data
 get.feature.type <- function(feature.class) {
   checkmate::assertCharacter(feature.class)
   
@@ -161,7 +165,7 @@ get.feature.type <- function(feature.class) {
   feature.types[feature.class]
 }
 
-# iml
+# iml, used for Predictor and PredictorAdf
 checkPrediction <- function(prediction, data) {
   checkmate::assert_data_frame(data)
   checkmate::assert_data_frame(prediction,
@@ -170,7 +174,7 @@ checkPrediction <- function(prediction, data) {
   )
 }
 
-# iml, we actually need only a part of it, since PredictorAf only works for WrappedModel class
+# iml, used for Predictor and PredictorAf. We actually need only a part of it, since PredictorAf only works for WrappedModel class
 inferTaskFromModel <- function(model) {
   UseMethod("inferTaskFromModel")
 }
@@ -192,5 +196,18 @@ inferTaskFromModel.WrappedModel <- function(model) {
     return("regression")
   } else {
     stop(sprintf("mlr task type <%s> not supported", tsk))
+  }
+}
+
+#iml, used for Predictor and PredictorAf
+inferTaskFromPrediction <- function(prediction) {
+  assert_true(any(class(prediction) %in%
+                    c("integer", "numeric", "data.frame", "matrix", "factor", "character")))
+  if (inherits(prediction, c("data.frame", "matrix")) && dim(prediction)[2] > 1) {
+    "classification"
+  } else if (inherits(prediction, c("factor", "character"))) {
+    "classification"
+  } else {
+    "regression"
   }
 }

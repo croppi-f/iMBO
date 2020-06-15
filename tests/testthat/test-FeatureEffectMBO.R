@@ -245,7 +245,7 @@ samples.argon = sample(rownames(data.kapton[data.kapton$gas == "Argon", ]), 3)
 samples.nitro = sample(rownames(data.kapton[data.kapton$gas == "Nitrogen", ]), 3)
 samples.air = sample(rownames(data.kapton[data.kapton$gas == "Air", ]), 3)
 initial.data = data.kapton[c(samples.argon, samples.nitro, samples.air), ]
-# cat(paste("Best training ratio: ", max(initial.data$ratio), "\n", sep = ""))
+
 
 ctrl = makeMBOControl(y.name = "ratio")
 ctrl = setMBOControlTermination(ctrl, iters = 3)
@@ -264,7 +264,6 @@ source("_Explore_Exploit_Measures/infillOptEASavepts-jr.R")
 source("_Explore_Exploit_Measures/infillOptCMAESSavepts-jr.R")
 
 # create the PredictorAf object (source the internal functions needed)
-#old: source("2_acquisition_function/2.2_Prediction_of_surrogate/Prediction_af/PredictorAf-fc.R")
 library(iml)
 source("R/PredictorAf.R")
 
