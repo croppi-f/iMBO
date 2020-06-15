@@ -4,35 +4,35 @@ library(DiceKriging)
 library(checkmate)
 
 #source modified functions from mlrMBO
-source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
-source("R/utils_xplxpl/makeMBOResult.OptState-jr.R")
-source("R/utils_xplxpl/getSupportedInfillOptFunctions-jr.R")
-source("R/utils_xplxpl/proposePointsByInfillOptimization-jr.R")
-source("R/utils_xplxpl/getInfillOptFunction-jr.R")
-source("R/utils_xplxpl/checkStuff-jr.R")
+source("R/utils_xplxpl/proposePointsByInfillOptimization.R")
+source("R/utils_xplxpl/makeMBOResult.OptState.R")
+source("R/utils_xplxpl/getSupportedInfillOptFunctions.R")
+source("R/utils_xplxpl/proposePointsByInfillOptimization.R")
+source("R/utils_xplxpl/getInfillOptFunction.R")
+source("R/utils_xplxpl/checkStuff.R")
 
 # multi point proposal stuff
-source("R/utils_xplxpl/proposePointsConstantLiarXplxpl-jr.R")
-source("R/utils_xplxpl/proposePoints-jr.R")
-source("R/utils_xplxpl/getSupportedMultipointInfillOptFunctions-jr.R")
+source("R/utils_xplxpl/proposePointsConstantLiarXplxpl.R")
+source("R/utils_xplxpl/proposePoints.R")
+source("R/utils_xplxpl/getSupportedMultipointInfillOptFunctions.R")
 
 # source new infill optimization functions "...Savepts"
-source("R/utils_xplxpl/infillOptFocusSavepts-jr.R")
-source("R/utils_xplxpl/infillOptEASavepts-jr.R")
-source("R/utils_xplxpl/infillOptCMAESSavepts-jr.R")
+source("R/utils_xplxpl/infillOptFocusSavepts.R")
+source("R/utils_xplxpl/infillOptEASavepts.R")
+source("R/utils_xplxpl/infillOptCMAESSavepts.R")
 
 # source function that computes explore exploit measures and returns them as data frame
-source("R/utils_xplxpl/computeXplxpl-jr.R")
+source("R/utils_xplxpl/computeXplxpl.R")
 
 # source functions that calculate se based explore exploit measures
-source("R/utils_xplxpl/xplxplSESingleLocal-jr.R")
-source("R/utils_xplxpl/xplxplSESingleGlobal-jr.R")
-source("R/utils_xplxpl/xplxplSEMultiLocal-jr.R")
-source("R/utils_xplxpl/xplxplSEMultiGlobal-jr.R")
+source("R/utils_xplxpl/xplxplSESingleLocal.R")
+source("R/utils_xplxpl/xplxplSESingleGlobal.R")
+source("R/utils_xplxpl/xplxplSEMultiLocal.R")
+source("R/utils_xplxpl/xplxplSEMultiGlobal.R")
 
 # source functions that calculate distance based explore exploit statistics
-source("R/utils_xplxpl/xplxplDistNum-jr.R")
-source("R/utils_xplxpl/xplxplDistCat-jr.R")
+source("R/utils_xplxpl/xplxplDistNum.R")
+source("R/utils_xplxpl/xplxplDistCat.R")
 
 
 # ... or simply (final version): 
@@ -127,9 +127,6 @@ editInfillOpt = function(infill.opt) {
          "nsga2" = stop("xplxplMBO does currently not support nsga2 infill optimization")
   )
 }
-
-# Run tests
-#testthat::test_file("_Explore_Exploit_Measures/test-xplxplMBO-jr.R")
 
 
 
