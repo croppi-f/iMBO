@@ -1,5 +1,6 @@
 # iMBO
-This repo contains tools to interpret Model Based Optimization processes
+This repo contains tools to interpret Model Based Optimization processes. The work is
+still in progress.
 
 * **Folder R**
   + tools for the interpretation and internal subfunctions.
