@@ -4,13 +4,13 @@ source("tests/test_data/kapton.R")
 
 library(mlrMBO)
 set.seed(1)
-model = train(makeLearner("regr.randomForest"), makeRegrTask(data = data.kapton, target = "ratio"))
+model = train(makeLearner("regr.randomForest"), makeRegrTask(data = data, target = "ratio"))
 
 # Bayesian Optimization
 
 fun = function(x) {
   df = as.data.frame(x)
-  df$gas = factor(df$gas, levels = levels(data.kapton$gas))
+  df$gas = factor(df$gas, levels = levels(data$gas))
   return(getPredictionResponse(predict(model, newdata = df)))
 }
 
@@ -31,10 +31,10 @@ objfun = makeSingleObjectiveFunction(
 
 # sample 9 points for the initial surrogate model, stratified across gases
 set.seed(1)
-samples.argon = sample(rownames(data.kapton[data.kapton$gas == "Argon", ]), 3)
-samples.nitro = sample(rownames(data.kapton[data.kapton$gas == "Nitrogen", ]), 3)
-samples.air = sample(rownames(data.kapton[data.kapton$gas == "Air", ]), 3)
-initial.data = data.kapton[c(samples.argon, samples.nitro, samples.air), ]
+samples.argon = sample(rownames(data[data$gas == "Argon", ]), 3)
+samples.nitro = sample(rownames(data[data$gas == "Nitrogen", ]), 3)
+samples.air = sample(rownames(data[data$gas == "Air", ]), 3)
+initial.data = data[c(samples.argon, samples.nitro, samples.air), ]
 
 
 ctrl = makeMBOControl(y.name = "ratio")
